@@ -34,24 +34,24 @@ using namespace arma;
 //' distRcpp(x)
 //'
 // [[Rcpp::export]]
+Rcpp::NumericMatrix distRcpp(const NumericMatrix X) {
+  const int n = X.nrow();
+  NumericMatrix D(n, n);
 
-
-Rcpp::NumericMatrix distRcpp(Rcpp::NumericMatrix X){
-  Rcpp::NumericMatrix XX(X);
-  //Rcpp::Rcout << X << endl;
-  //Rcpp::Rcout << XX << endl;
-  int p = XX.nrow();
-  Rcpp::NumericMatrix DIST(p,p);
-  for(int i=0; i< p; i++){
-    for(int j=0; j< p; j++){
-      if(i!=j){
-        DIST(i,j)=sqrt(sum((XX.row(i)-XX.row(j))*(XX.row(i)-XX.row(j))));
+  for (int i = 0; i < n; ++i) {
+    D(i, i) = 0.0;
+    for (int j = i + 1; j < n; ++j) {
+      double dist = 0.0;
+      for (int k = 0; k < X.ncol(); ++k) {
+        const double tmp = X(i, k) - X(j, k);
+        dist += tmp * tmp;
       }
+      D(i, j) = sqrt(dist);
+      D(j, i) = D(i, j);
     }
   }
-  return DIST;
+  return D;
 }
-
 
 arma::mat eigVec(arma::mat xx){
   int p = xx.n_rows;
@@ -128,7 +128,10 @@ extern "C" SEXP bmdsMCMC(SEXP DIST, SEXP p, int nwarm= 1000, int niter=5000){
   int totiter = nwarm+niter;
   int xp = n*pc;
 
-  int i,j,k,iter,iterID;
+  Rcpp::Function RDist("dist");
+  Rcpp::Function as_matrix("as.matrix");
+
+  int i,j,iter,iterID;
   double s_dsq,xmean,sigma,stress,s_res;
   double pralpha_sig,prbeta_sig,alpha_lam,ssr;
   double s_sigma,sq_sigma,rmin_ssr,quad,quad_st,e_sigma;
@@ -143,7 +146,6 @@ extern "C" SEXP bmdsMCMC(SEXP DIST, SEXP p, int nwarm= 1000, int niter=5000){
   s_dsq=0;
   for(i=0; i<n; i++)
     s_dsq += sum(DISTc.row(i)*DISTc.row(i));
-
   arma::mat rI_p(pc,pc);
   rI_p.diag().fill(1);
 
@@ -152,7 +154,6 @@ extern "C" SEXP bmdsMCMC(SEXP DIST, SEXP p, int nwarm= 1000, int niter=5000){
   Rcpp::Function cmdscale = stats["cmdscale"];
   Rcpp::NumericMatrix tmp_x = cmdscale(DISTc,Rcpp::Named("k",pc));
   Rcpp::NumericMatrix XX = Rcpp::clone(tmp_x);
-
   for(i=0; i < pc ;i++){
     xmean = mean(XX.column(i));
     XX.column(i) = XX.column(i)-xmean;
@@ -170,13 +171,13 @@ extern "C" SEXP bmdsMCMC(SEXP DIST, SEXP p, int nwarm= 1000, int niter=5000){
   XXX = Rcpp::clone(wrap(x));
   arma::mat x_int = x;
 
-  Rcpp::NumericMatrix delta = distRcpp(wrap(x_int));
+  // Rcpp::NumericMatrix delta = distRcpp(wrap(x_int));
+  NumericMatrix delta = as_matrix(RDist(x_int));
 
-  s_res =0;
+    s_res =0;
   for(i=0; i<n; i++)
     s_res += sum((delta.row(i)- DISTc.row(i))*(delta.row(i)- DISTc.row(i)));
   s_res = s_res/2.0;
-
   sigma = s_res/m;
   stress = sqrt(s_res/s_dsq);
 
@@ -205,8 +206,6 @@ extern "C" SEXP bmdsMCMC(SEXP DIST, SEXP p, int nwarm= 1000, int niter=5000){
   arma::mat x_sv=x;
   arma::mat cd_var(pc,pc),cd_var_inv(pc,pc),cd_sig(pc,pc);
   arma::vec x_old(pc),cmd(pc),x_new(pc),rn(pc);
-
-
   for(iter=0; iter<totiter;iter++){
     x_sv = x;
     for(i=0;i<n; i++){
@@ -228,30 +227,28 @@ extern "C" SEXP bmdsMCMC(SEXP DIST, SEXP p, int nwarm= 1000, int niter=5000){
         quad_st += x_new(j)*x_new(j)*lambda(j);
       }
 
-
       t1 = 0;
       t1_st = 0;
       s_temp = 0;
 
-      for(j=0; j< n; j++){
-        if(j!=i){
-          double del_ij,del_st_ij;
-          double del_sq_ij=0.0;
-          double del_sq_st_ij=0.0;
-          for(k=0;k<pc;k++){
-            del_sq_ij +=(x(j,k)-x_old(k))*(x(j,k)-x_old(k));
-            del_sq_st_ij +=(x(j,k)-x_new(k))*(x(j,k)-x_new(k));
-          }
-          del_ij = sqrt(del_sq_ij);
-          del_st_ij = sqrt(del_sq_st_ij);
-          T1 = wrap(del_st_ij/sqrt(sigma));
-          T2 = wrap(del_ij/sqrt(sigma));
-          double temp = sum(log(pnorm(T1)/ pnorm(T2)));
-          t1 = t1 -0.5/sigma*(del_ij-DISTc(i,j))*(del_ij-DISTc(i,j));
-          t1_st =t1_st -0.5/sigma*(del_st_ij-DISTc(i,j))*(del_ij-DISTc(i,j));
-          s_temp = s_temp - temp;
-        }
-      }
+      arma::mat x_prop = x;
+      x_prop.row(i) = x_new.as_row();
+      arma::mat D_old = square(x.each_row() - x.row(i));
+      arma::mat D_new = square(x_prop.each_row() - x_prop.row(i));
+      arma::vec delta_i = sqrt(sum(D_old, 1));
+      arma::vec delta_i_new = sqrt(sum(D_new, 1));
+
+      Rcpp::NumericVector DISTc_row_i = DISTc(i, _);
+      arma::rowvec DISTc_row_i_arma = arma::rowvec(DISTc_row_i.begin(), DISTc_row_i.size());
+
+      t1 = (-0.5/sigma)*sum(square(delta_i.t() - DISTc_row_i_arma));
+      t1_st = (-0.5/sigma)*sum(square(delta_i_new.t() - DISTc_row_i_arma));
+
+
+      delta_i.shed_row(i);
+      delta_i_new.shed_row(i);
+      arma::vec a = log(arma::normcdf(delta_i_new/ sqrt(sigma)) / arma::normcdf(delta_i/ sqrt(sigma)));
+      s_temp = sum(a);
 
       rl_gw = 0;
       rl_fw = t1_st - t1 - s_temp - 0.5*(quad_st-quad);
@@ -261,9 +258,9 @@ extern "C" SEXP bmdsMCMC(SEXP DIST, SEXP p, int nwarm= 1000, int niter=5000){
       x.row(i) = conv_to<rowvec>::from(x_old);
 
     }
-
     for(i=0; i<pc;i++)
       x.col(i) = x.col(i)-mean(x.col(i));
+
     Sig_x = x.t()*x/n;
     eig_V=eigVec(Sig_x);
 
@@ -272,14 +269,13 @@ extern "C" SEXP bmdsMCMC(SEXP DIST, SEXP p, int nwarm= 1000, int niter=5000){
     Sig_x = eig_V.t()*Sig_x*eig_V;
 
     // generate sigma
-
-    delta = distRcpp(wrap(x));
+    // delta = distRcpp(wrap(x));
+    delta = as_matrix(RDist(wrap(x)));
     ssr =0;
     for(i=0; i<n; i++)
       ssr += sum((delta.row(i)- DISTc.row(i))*
         (delta.row(i)- DISTc.row(i)));
     ssr = ssr/2.0;
-
     sig_old = sigma;
 
 
@@ -307,15 +303,12 @@ extern "C" SEXP bmdsMCMC(SEXP DIST, SEXP p, int nwarm= 1000, int niter=5000){
       sig_old = sig_new;
     }
     sigma = sig_old;
-
     //  generate Lambda
-
     for(i=0; i<pc; i++){
       s1(i)=0;
       for(j=0;j<n; j++)
         s1(i) += x(j,i)*x(j,i);
     }
-
     pst_beta_lam = 0.5*s1+beta_lam;
     pst_alpha_lam = 0.5*n+alpha_lam;
 
@@ -326,7 +319,6 @@ extern "C" SEXP bmdsMCMC(SEXP DIST, SEXP p, int nwarm= 1000, int niter=5000){
     arma::vec yrg (rg.begin(),rg.size(),false);
 
     lambda=yrg/pst_beta_lam;
-
     if(iter >= nwarm){
       iterID = iter-nwarm;
       s_sigma = s_sigma+sigma;
@@ -365,9 +357,7 @@ extern "C" SEXP bmdsMCMC(SEXP DIST, SEXP p, int nwarm= 1000, int niter=5000){
     // end MCMC
 
   }
-
   e_sigma = s_sigma/ niter;
-
   return Rcpp::List::create(
     Rcpp::Named("x_bmds") = x_keep,
     Rcpp::Named("e_sigma")= e_sigma);

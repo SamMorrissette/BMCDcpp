@@ -16,7 +16,6 @@ BMDS <- function(distances, max_p, parallel = FALSE, cores) {
     bmds_burn = 1000
     bmds_iter = 5000
     for (i in 1:max_p) {
-      # Doesn't include delta matrix (reduce memory required)
       temp_bmds <- bmdsMCMC(DIST = distances, p = i, nwarm = bmds_burn, niter = bmds_iter)
       X[[i]] <- temp_bmds$x_bmds
       sigma_sq[[i]] <- temp_bmds$e_sigma

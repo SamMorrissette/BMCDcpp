@@ -1,7 +1,7 @@
 createOutput <- function(bmcd_obj, init_X, burn, iters) {
   ind <- (burn+1):iters
   out <- list(BMDS_X = init_X,
-              X = dpobj$X[,,ind],
+              X = bmcd_obj$X[,,ind],
               sigmasq = bmcd_obj$sigmasq[ind,],
               means = bmcd_obj$means[,,ind],
               covs = bmcd_obj$covs[ind,],
@@ -13,12 +13,12 @@ createOutput <- function(bmcd_obj, init_X, burn, iters) {
 }
 
 
-RunBMCD <- function(distances, init_X, init_sigmasq, burn, iters, modelIndices, parallel, cores) {
+RunBMCD <- function(distances, init_X, G, init_sigmasq, burn, iters, modelIndices, parallel, cores) {
   if (parallel == FALSE) {
     # Run MCMC one model at a time
     allModels <- vector("list", length = length(modelIndices))
     for (i in 1:length(modelIndices)) {
-      bmcd_obj <- BMCD_MCMC(distances, init_X, init_sigmasq, iters, modelIndices[i])
+      bmcd_obj <- BMCD_MCMC(distances, init_X, G, init_sigmasq, iters, modelIndices[i])
       allModels[[i]] <- createOutput(bmcd_obj, init_X, burn, iters)
     }
   } else if (parallel == TRUE) {
@@ -26,7 +26,7 @@ RunBMCD <- function(distances, init_X, init_sigmasq, burn, iters, modelIndices, 
       doParallel::registerDoParallel(cores=cores)
     }
     allModels <- foreach::foreach(j=1:length(modelIndices), .packages ="BMCD") %dopar% {
-      bmcd_obj <- BMCD_MCMC(distances, init_X, init_sigmasq, iters, modelIndices[j])
+      bmcd_obj <- BMCD_MCMC(distances, init_X, G, init_sigmasq, iters, modelIndices[j])
       output <- createOutput(bmcd_obj, init_X, burn, iters)
     }
   }

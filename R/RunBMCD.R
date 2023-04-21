@@ -1,3 +1,8 @@
+#' @importFrom foreach %dopar% foreach
+#' @importFrom foreach getDoParRegistered
+#' @importFrom doParallel registerDoParallel
+#' @export
+
 createOutput <- function(bmcd_obj, init_X, burn, iters) {
   ind <- (burn+1):iters
   out <- list(BMDS_X = init_X,

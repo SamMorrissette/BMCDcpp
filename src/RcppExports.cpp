@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // BMCD_MCMC
-List BMCD_MCMC(arma::mat obs_dist, arma::mat init_X, const int G, double init_sigmasq, const int iters, int modelIndex);
-RcppExport SEXP _BMCDcpp_BMCD_MCMC(SEXP obs_distSEXP, SEXP init_XSEXP, SEXP GSEXP, SEXP init_sigmasqSEXP, SEXP itersSEXP, SEXP modelIndexSEXP) {
+List BMCD_MCMC(arma::mat obs_dist, arma::mat init_X, const int G, double init_sigmasq, const int burn, const int iters, int modelIndex);
+RcppExport SEXP _BMCDcpp_BMCD_MCMC(SEXP obs_distSEXP, SEXP init_XSEXP, SEXP GSEXP, SEXP init_sigmasqSEXP, SEXP burnSEXP, SEXP itersSEXP, SEXP modelIndexSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -21,9 +21,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type init_X(init_XSEXP);
     Rcpp::traits::input_parameter< const int >::type G(GSEXP);
     Rcpp::traits::input_parameter< double >::type init_sigmasq(init_sigmasqSEXP);
+    Rcpp::traits::input_parameter< const int >::type burn(burnSEXP);
     Rcpp::traits::input_parameter< const int >::type iters(itersSEXP);
     Rcpp::traits::input_parameter< int >::type modelIndex(modelIndexSEXP);
-    rcpp_result_gen = Rcpp::wrap(BMCD_MCMC(obs_dist, init_X, G, init_sigmasq, iters, modelIndex));
+    rcpp_result_gen = Rcpp::wrap(BMCD_MCMC(obs_dist, init_X, G, init_sigmasq, burn, iters, modelIndex));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -52,51 +53,11 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// dmvnrm_arma_fast
-arma::vec dmvnrm_arma_fast(arma::mat const& x, arma::rowvec const& mean, arma::mat const& sigma, bool const logd);
-RcppExport SEXP _BMCDcpp_dmvnrm_arma_fast(SEXP xSEXP, SEXP meanSEXP, SEXP sigmaSEXP, SEXP logdSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat const& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::rowvec const& >::type mean(meanSEXP);
-    Rcpp::traits::input_parameter< arma::mat const& >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< bool const >::type logd(logdSEXP);
-    rcpp_result_gen = Rcpp::wrap(dmvnrm_arma_fast(x, mean, sigma, logd));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rdirichlet_cpp
-arma::mat rdirichlet_cpp(int num_samples, arma::vec alpha_m);
-RcppExport SEXP _BMCDcpp_rdirichlet_cpp(SEXP num_samplesSEXP, SEXP alpha_mSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type num_samples(num_samplesSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type alpha_m(alpha_mSEXP);
-    rcpp_result_gen = Rcpp::wrap(rdirichlet_cpp(num_samples, alpha_m));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Arma_colSums
-arma::rowvec Arma_colSums(const arma::mat& x);
-RcppExport SEXP _BMCDcpp_Arma_colSums(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(Arma_colSums(x));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_BMCDcpp_BMCD_MCMC", (DL_FUNC) &_BMCDcpp_BMCD_MCMC, 6},
+    {"_BMCDcpp_BMCD_MCMC", (DL_FUNC) &_BMCDcpp_BMCD_MCMC, 7},
     {"_BMCDcpp_distRcpp", (DL_FUNC) &_BMCDcpp_distRcpp, 1},
     {"_BMCDcpp_bmdsMCMC", (DL_FUNC) &_BMCDcpp_bmdsMCMC, 4},
-    {"_BMCDcpp_dmvnrm_arma_fast", (DL_FUNC) &_BMCDcpp_dmvnrm_arma_fast, 4},
-    {"_BMCDcpp_rdirichlet_cpp", (DL_FUNC) &_BMCDcpp_rdirichlet_cpp, 2},
-    {"_BMCDcpp_Arma_colSums", (DL_FUNC) &_BMCDcpp_Arma_colSums, 1},
     {NULL, NULL, 0}
 };
 

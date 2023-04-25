@@ -30,7 +30,7 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 List BMCD_MCMC(arma::mat obs_dist,
              arma::mat init_X, const int G, double init_sigmasq,
-             const int iters,
+             const int burn, const int iters,
              int modelIndex) {
   X_mat = init_X;
   n = init_X.n_rows;
@@ -77,6 +77,7 @@ List BMCD_MCMC(arma::mat obs_dist,
   sigmasq(0) = init_sigmasq;
   InitChains(X, p, z, means, covs);
 
+  double BIC;
   Progress prog(iters, true);
 
 
@@ -125,6 +126,8 @@ List BMCD_MCMC(arma::mat obs_dist,
     }
   }
 
+  //Step 9 (Calculate BIC)
+  BIC = CalcBIC(X, p, means, covs, G, modelIndex, burn, iters);
   return List::create(
     Named("X") = X,
     Named("sigmasq") = sigmasq,
@@ -133,5 +136,5 @@ List BMCD_MCMC(arma::mat obs_dist,
     Named("z") = z,
     Named("class_probs") = class_probs,
     Named("p") = p,
-    Named("perms") = perm_mat);
+    Named("BIC") = BIC);
 }

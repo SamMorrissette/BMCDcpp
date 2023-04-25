@@ -23,7 +23,6 @@ void inplace_tri_mat_mult(arma::rowvec &x, arma::mat const &trimat){
   }
 }
 
-// [[Rcpp::export]]
 arma::vec dmvnrm_arma_fast(arma::mat const &x,
                            arma::rowvec const &mean,
                            arma::mat const &sigma,
@@ -60,7 +59,6 @@ double CalcSSR(Rcpp::NumericMatrix mat1, Rcpp::NumericMatrix mat2) {
 
 // Credit for this function goes to Matthew Denny: https://www.mjdenny.com/blog.html
 
-// [[Rcpp::export]]
 arma::mat rdirichlet_cpp(int num_samples,
                          arma::vec alpha_m) {
   int distribution_size = alpha_m.n_elem;
@@ -83,7 +81,6 @@ arma::mat rdirichlet_cpp(int num_samples,
   return(distribution);
 }
 
-// [[Rcpp::export]]
 arma::rowvec Arma_colSums(const arma::mat& x) {
   return arma::sum(x, 0);
 }

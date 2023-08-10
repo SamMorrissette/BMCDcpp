@@ -29,7 +29,7 @@ RunBMCD <- function(distances, init_X, G, init_sigmasq, burn, iters, modelIndice
     if (!foreach::getDoParRegistered()) {
       doParallel::registerDoParallel(cores=cores)
     }
-    allModels <- foreach::foreach(j=1:length(modelIndices), .packages ="BMCD") %dopar% {
+    allModels <- foreach::foreach(j=1:length(modelIndices), .packages ="BMCDcpp") %dopar% {
       bmcd_obj <- BMCD_MCMC(distances, init_X, G, init_sigmasq, burn, iters, modelIndices[j])
       output <- createOutput(bmcd_obj, init_X, burn, iters)
     }

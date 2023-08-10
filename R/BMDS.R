@@ -44,7 +44,7 @@ BMDS <- function(distances, max_dim, parallel = FALSE, cores) {
       lapply(seq_along(x),
              function(i) c(x[[i]], lapply(list(...), function(y) y[[i]])))
     }
-    out_list <- foreach::foreach(j=1:max_dim, .packages ="BMCD", .combine='comb', .multicombine=TRUE, .init=list(list(), list())) %dopar% {
+    out_list <- foreach::foreach(j=1:max_dim, .packages ="BMCDcpp", .combine='comb', .multicombine=TRUE, .init=list(list(), list())) %dopar% {
       bmds_burn = 1000
       bmds_iter = 5000
       output <- bmdsMCMC(DIST = distances, p = j, nwarm = bmds_burn, niter = bmds_iter)

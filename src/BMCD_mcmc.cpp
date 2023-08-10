@@ -45,12 +45,12 @@ List BMCD_MCMC(arma::mat obs_dist,
   mu0 = arma::vec(dim, arma::fill::zeros);
   nu0 = dim+2;
   S = arma::mat(dim, dim, arma::fill::eye);
-  kappa = 1;
+  kappa = 3;
 
   // Priors for IG (US model)
   arma::mat cov_X_init = cov(X_mat);
   prior_IG_alpha = (dim+2) / 2;
-  prior_IG_beta = (sum(cov_X_init.diag()) / dim) / 2; //(dim+2) / 2;
+  prior_IG_beta = (dim+2) / 2; //(sum(cov_X_init.diag()) / dim) / 2; //
 
   // Priors for sigma squared (Inverse-Gamma prior)
   sigmasq_prior_shape = 5;

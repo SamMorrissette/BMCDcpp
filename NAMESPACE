@@ -1,5 +1,7 @@
 exportPattern("^[[:alpha:]]+")
 importFrom(Rcpp, evalCpp)
+importFrom(coda, mcmc)
+importFrom(mcmcplots, mcmcplot)
 importFrom(doParallel,registerDoParallel)
 importFrom(foreach,getDoParRegistered)
 importFrom(foreach,"%dopar%")

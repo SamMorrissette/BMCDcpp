@@ -44,8 +44,8 @@ List BMCD_MCMC(arma::mat obs_dist,
   // Priors for NIW (UU model)
   mu0 = arma::vec(dim, arma::fill::zeros);
   nu0 = dim+2;
-  S = arma::mat(dim, dim, arma::fill::eye);
-  kappa = 3;
+  S = cov(X_mat); //arma::mat(dim, dim, arma::fill::eye);
+  kappa = 1;
 
   // Priors for IG (US model)
   arma::mat cov_X_init = cov(X_mat);
@@ -127,7 +127,7 @@ List BMCD_MCMC(arma::mat obs_dist,
   }
 
   //Step 9 (Calculate BIC)
-  BIC = CalcBIC(X, p, means, covs, G, modelIndex, burn, iters);
+  BIC = CalcBIC(X, p, means, covs, class_probs, G, modelIndex, burn, iters);
   return List::create(
     Named("X") = X,
     Named("sigmasq") = sigmasq,

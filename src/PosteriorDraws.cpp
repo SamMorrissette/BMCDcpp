@@ -294,7 +294,7 @@ Params DrawEqualSpherical(arma::rowvec z) {
 
   pst_IG_alpha = prior_IG_alpha + ((n * dim) / 2);
   pst_IG_beta = prior_IG_beta + ((full_W + full_T) / 2);
-  lambda = 1.0 / (R::rgamma(pst_IG_alpha, 1.0/pst_IG_beta));
+  lambda = (R::rgamma(pst_IG_alpha, 1.0/pst_IG_beta));
   common_covariance = lambda * arma::mat(dim, dim, arma::fill::eye);
 
   for (int k = 0; k < num_comps; k++) {

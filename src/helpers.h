@@ -55,6 +55,7 @@ Params DrawEqualSpherical(arma::rowvec z);
 Params DrawEqualDiagonal(arma::rowvec z);
 
 double CalcBIC(arma::cube X, arma::mat p, arma::cube means, arma::field<arma::cube> covs,
+               arma::cube class_probs,
                const int G,
                int modelIndex,
                int burn, int iters);

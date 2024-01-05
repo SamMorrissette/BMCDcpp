@@ -9,6 +9,7 @@
 using namespace Rcpp;
 
 double CalcBIC(arma::cube X, arma::mat p, arma::cube means, arma::field<arma::cube> covs,
+               arma::cube class_probs,
                const int G,
                int modelIndex,
                int burn, int iters) {
@@ -21,11 +22,13 @@ double CalcBIC(arma::cube X, arma::mat p, arma::cube means, arma::field<arma::cu
   arma::rowvec mean_p(G, arma::fill::zeros);
   arma::mat mean_mu(dim, G, arma::fill::zeros);
   arma::cube mean_cov(dim, dim, G);
+  arma::mat mean_class(n, G, arma::fill::zeros);
   arma::vec normd_result(1);
   for (int t = burn; t < iters; t++) {
     mean_X = mean_X + X.slice(t);
     mean_p = mean_p + p.row(t);
     mean_mu = mean_mu + means.slice(t);
+    mean_class = mean_class + class_probs.slice(t);
     for (int k = 0; k < num_comps; k++) {
       mean_cov.slice(k) = mean_cov.slice(k) + (covs(t).slice(k) / (iters - burn));
     }
@@ -33,6 +36,7 @@ double CalcBIC(arma::cube X, arma::mat p, arma::cube means, arma::field<arma::cu
   mean_X = mean_X / (iters - burn);
   mean_p = mean_p / (iters - burn);
   mean_mu = mean_mu / (iters - burn);
+  mean_class = mean_class / (iters - burn);
   switch (modelIndex) {
   case 1: // Unequal Unrestricted
   {
@@ -69,7 +73,8 @@ double CalcBIC(arma::cube X, arma::mat p, arma::cube means, arma::field<arma::cu
   for (int i = 0; i < n; i++) {
     lik_iter = 0;
     for (int j = 0; j < G; j++) {
-      normd_result = mean_p(j) * dmvnorm(mean_X.row(i), mean_mu.col(j), mean_cov.slice(j));
+      //normd_result = mean_p(j) * dmvnorm(mean_X.row(i), mean_mu.col(j), mean_cov.slice(j));
+      normd_result = mean_class.row(i)(j) * dmvnorm(mean_X.row(i), mean_mu.col(j), mean_cov.slice(j));
       lik_iter = lik_iter + normd_result(0);
     }
     log_likelihood = log_likelihood + log(lik_iter);

@@ -321,7 +321,6 @@ Params DrawEqualSpherical(arma::rowvec z) {
 
   parameters.mean = mean;
   parameters.covariance = covariance;
-  Rprintf("%d %d %d \n", pst_IG_alpha, pst_IG_beta, lambda);
   return parameters;
 }
 

@@ -44,11 +44,11 @@ List BMCD_MCMC(arma::mat obs_dist,
   // Priors for NIW (UU model)
   mu0 = arma::vec(dim, arma::fill::zeros);
   nu0 = dim+2;
-  S = cov(X_mat); //arma::mat(dim, dim, arma::fill::eye);
+  S = arma::mat(dim, dim, arma::fill::eye); // cov(X_mat);
   kappa = 1;
 
   // Priors for IG (US model)
-  arma::mat cov_X_init = cov(X_mat);
+  arma::mat cov_X_init = arma::mat(dim, dim, arma::fill::eye); //cov(X_mat);
   prior_IG_alpha = (dim+2) / 2;
   prior_IG_beta = (dim+2) / 2; //(sum(cov_X_init.diag()) / dim) / 2; //
 

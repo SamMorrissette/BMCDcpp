@@ -264,7 +264,7 @@ Params DrawEqualSpherical(arma::rowvec z) {
   for (int k = 0; k < num_comps; k++) {
     pos = find(z == k+1);
     n_k = pos.n_elem;
-    Rprintf("%d %d \n", n_k, k);
+    //Rprintf("%d %d \n", n_k, k);
     if (n_k == 0) {
       continue;
     }

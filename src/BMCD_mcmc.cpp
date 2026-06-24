@@ -42,9 +42,10 @@ List BMCD_MCMC(arma::mat obs_dist,
   double s_res = CalcSSR(distRcpp(wrap(init_X)), wrap(obs_dist));
 
   // Priors for NIW (UU model)
+  double d_W = 0.05;
   mu0 = arma::vec(dim, arma::fill::zeros);
   nu0 = dim+2;
-  S = arma::mat(dim, dim, arma::fill::eye); // cov(X_mat);
+  S = (std::pow(d_W, 2) / 2.0 * dim) * arma::eye(dim, dim); //arma::mat(dim, dim, arma::fill::eye); // cov(X_mat);
   kappa = 1;
 
   // Priors for IG (US model)
